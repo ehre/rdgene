@@ -438,12 +438,25 @@
 
     // Open all button
     openAllBtn.style.display = 'block';
-    openAllBtn.onclick = () => urls.forEach(u => window.open(u, '_blank', 'noopener,noreferrer'));
+    openAllBtn.onclick = () => openAllUrls(urls);
 
     // Auto-open if checkbox is checked
     if (openAllCheckbox.checked) {
-      urls.forEach(u => window.open(u, '_blank', 'noopener,noreferrer'));
+      openAllUrls(urls);
     }
+  }
+
+  // ── Open all URLs ─────────────────────────────────────────────────────
+  function openAllUrls(urls) {
+    urls.forEach(url => {
+      const a = document.createElement('a');
+      a.href   = url;
+      a.target = '_blank';
+      a.rel    = 'noopener noreferrer';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    });
   }
 
   // ── Event listeners ───────────────────────────────────────────────────
