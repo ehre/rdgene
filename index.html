@@ -162,24 +162,18 @@
       font-size: .95rem;
     }
 
-    .open-all-btn {
-      margin-top: 14px;
-      width: 100%;
-      padding: 12px;
-      background: transparent;
-      color: var(--brand);
-      border: 2px solid var(--brand);
+    .error-msg {
+      margin-top: 16px;
+      padding: 12px 16px;
       border-radius: 8px;
+      background: color-mix(in srgb, var(--brand) 10%, var(--card));
+      border: 1px solid color-mix(in srgb, var(--brand) 30%, var(--border));
+      color: var(--brand);
       font-size: .95rem;
-      font-weight: 650;
-      cursor: pointer;
-      transition: background-color .2s, color .2s;
+      display: none;
     }
 
-    .open-all-btn:hover {
-      background: var(--brand);
-      color: #fff;
-    }
+    .error-msg.visible { display: block }
   </style>
 </head>
 <body>
@@ -218,6 +212,9 @@
           Open all sources in new tabs automatically
         </label>
 
+        <!-- Error message -->
+        <div class="error-msg" id="error-msg"></div>
+
         <!-- Gene summary -->
         <div class="summary-section" id="summary-section">
           <div class="summary-label" id="summary-label">NCBI Gene Summary</div>
@@ -228,7 +225,6 @@
         <div class="sources-section" id="sources-section">
           <div class="sources-label">Sources</div>
           <div class="source-grid" id="source-grid"></div>
-          <button class="open-all-btn" id="open-all-btn" style="display:none">Open all in new tabs</button>
         </div>
       </div>
 
@@ -314,39 +310,48 @@
   const geneInput       = document.getElementById('gene-input');
   const searchBtn       = document.getElementById('search-btn');
   const openAllCheckbox = document.getElementById('open-all-checkbox');
+  const errorMsg        = document.getElementById('error-msg');
   const summarySection  = document.getElementById('summary-section');
   const summaryLabel    = document.getElementById('summary-label');
   const summaryText     = document.getElementById('summary-text');
   const sourcesSection  = document.getElementById('sources-section');
   const sourceGrid      = document.getElementById('source-grid');
-  const openAllBtn      = document.getElementById('open-all-btn');
 
   // ── Main search ───────────────────────────────────────────────────────
   async function runSearch() {
     const gene = geneInput.value.trim().toUpperCase();
     if (!gene) return;
 
-    // Show sections in loading state
-    summarySection.classList.add('visible');
-    sourcesSection.classList.add('visible');
+    // Reset state
+    errorMsg.classList.remove('visible');
+    summarySection.classList.remove('visible');
+    sourcesSection.classList.remove('visible');
     summaryLabel.textContent = `NCBI Gene Summary – ${gene}`;
     summaryText.textContent  = 'Loading…';
     summaryText.className    = 'summary-text loading';
     sourceGrid.innerHTML     = '';
-    openAllBtn.style.display = 'none';
 
-    // Fetch HGNC and NCBI data in parallel
-    const [hgncData, summaryData] = await Promise.all([
-      fetchHGNC(gene),
-      fetchNCBISummary(gene)
-    ]);
+    // Fetch HGNC first – it's our validation gate
+    const hgncData = await fetchHGNC(gene);
+
+    if (!hgncData) {
+      errorMsg.textContent = `"${gene}" was not recognised as a valid HGNC gene symbol.`;
+      errorMsg.classList.add('visible');
+      return;
+    }
+
+    // HGNC OK – show sections and fetch summary in parallel
+    summarySection.classList.add('visible');
+    sourcesSection.classList.add('visible');
+
+    const summaryData = await fetchNCBISummary(gene);
 
     // Render summary
     if (summaryData) {
       summaryText.textContent = summaryData;
       summaryText.className   = 'summary-text';
     } else {
-      summaryText.textContent = 'No gene summary found for this symbol.';
+      summaryText.textContent = 'No gene summary available.';
       summaryText.className   = 'summary-text error';
     }
 
@@ -435,10 +440,6 @@
       `;
       sourceGrid.appendChild(btn);
     }
-
-    // Open all button
-    openAllBtn.style.display = 'block';
-    openAllBtn.onclick = () => openAllUrls(urls);
 
     // Auto-open if checkbox is checked
     if (openAllCheckbox.checked) {
