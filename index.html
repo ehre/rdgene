@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RDgene</title>
+  <link rel="icon" href="https://ehrencrona.org/favicon.ico">
+  <link rel="stylesheet" href="https://ehrencrona.org/shared.css">
+  <style>
+    .rdgene-card {
+      padding: 24px 28px;
+    }
+
+    .rdgene-title {
+      margin: 0 0 20px;
+      font-size: clamp(1.3rem, 2.5vw, 1.7rem);
+      font-weight: 300;
+      letter-spacing: .1em;
+      color: var(--brand);
+      text-align: center;
+    }
+
+    .search-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .search-row .field {
+      margin: 0;
+      flex: 1;
+      text-transform: uppercase;
+    }
+
+    .search-row .field::placeholder {
+      text-transform: none;
+    }
+
+    .search-btn {
+      padding: 14px 22px;
+      background: var(--brand);
+      color: #fff;
+      border: 0;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 650;
+      cursor: pointer;
+      transition: background-color .2s;
+      white-space: nowrap;
+    }
+
+    .search-btn:hover { background: var(--brand-hover) }
+
+    .open-all-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      font-size: .92rem;
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .open-all-row input[type="checkbox"] {
+      accent-color: var(--brand);
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+    }
+
+    /* Gene summary */
+    .summary-section {
+      margin-top: 20px;
+      display: none;
+    }
+
+    .summary-section.visible { display: block }
+
+    .summary-label {
+      font-size: .82rem;
+      font-weight: 650;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .summary-text {
+      font-size: .95rem;
+      line-height: 1.55;
+      color: var(--text);
+    }
+
+    .summary-text.loading { color: var(--muted); font-style: italic }
+    .summary-text.error   { color: var(--muted); font-style: italic }
+
+    /* Source buttons */
+    .sources-section {
+      margin-top: 20px;
+      display: none;
+    }
+
+    .sources-section.visible { display: block }
+
+    .sources-label {
+      font-size: .82rem;
+      font-weight: 650;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .source-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .source-btn {
+      text-decoration: none;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 13px 16px;
+      box-shadow: var(--shadow);
+      transition: border-color .15s ease, transform .15s ease;
+      color: inherit;
+    }
+
+    .source-btn:visited { color: inherit }
+
+    .source-btn:hover {
+      border-color: color-mix(in srgb, var(--brand) 60%, var(--border));
+      transform: translateY(-1px);
+    }
+
+    .source-btn.disabled {
+      opacity: .4;
+      pointer-events: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .source-btn { transition: none }
+      .source-btn:hover { transform: none }
+    }
+
+    .source-name {
+      font-size: 1.02rem;
+      font-weight: 650;
+      color: var(--title-color);
+    }
+
+    .source-btn:hover .source-name { color: var(--brand) }
+
+    .source-arrow {
+      color: var(--brand);
+      font-size: .95rem;
+    }
+
+    .open-all-btn {
+      margin-top: 14px;
+      width: 100%;
+      padding: 12px;
+      background: transparent;
+      color: var(--brand);
+      border: 2px solid var(--brand);
+      border-radius: 8px;
+      font-size: .95rem;
+      font-weight: 650;
+      cursor: pointer;
+      transition: background-color .2s, color .2s;
+    }
+
+    .open-all-btn:hover {
+      background: var(--brand);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <header class="brand-header">
+    <a href="https://ehrencrona.org">
+      <picture>
+        <source srcset="https://ehrencrona.org/ehrencrona_logo_darkmode.png" media="(prefers-color-scheme: dark)">
+        <img class="brand-logo" src="https://ehrencrona.org/ehrencrona_logo.png" alt="Ehrencrona logo">
+      </picture>
+    </a>
+  </header>
+
+  <main class="content">
+    <div class="content-inner">
+
+      <div class="card rdgene-card">
+        <h1 class="rdgene-title">RDgene</h1>
+
+        <div class="search-row">
+          <input
+            class="field"
+            id="gene-input"
+            type="text"
+            placeholder="Enter gene symbol, e.g. BRCA1"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="characters"
+            spellcheck="false"
+          >
+          <button class="search-btn" id="search-btn">Search</button>
+        </div>
+
+        <label class="open-all-row">
+          <input type="checkbox" id="open-all-checkbox">
+          Open all sources in new tabs automatically
+        </label>
+
+        <!-- Gene summary -->
+        <div class="summary-section" id="summary-section">
+          <div class="summary-label" id="summary-label">NCBI Gene Summary</div>
+          <div class="summary-text" id="summary-text"></div>
+        </div>
+
+        <!-- Source links -->
+        <div class="sources-section" id="sources-section">
+          <div class="sources-label">Sources</div>
+          <div class="source-grid" id="source-grid"></div>
+          <button class="open-all-btn" id="open-all-btn" style="display:none">Open all in new tabs</button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+  // ── Source definitions ────────────────────────────────────────────────
+  // type: "gene"   → URL built with gene symbol
+  // type: "hgnc"   → URL built with HGNC numeric ID  (e.g. "1100")
+  // type: "omim"   → URL built with OMIM ID from HGNC lookup
+  const SOURCES = [
+    {
+      name: "Genetik Lund",
+      type: "gene",
+      url: g => `https://genpaneler.genetiklund.se/search/${g}`,
+      order: 0   // always first
+    },
+    {
+      name: "ClinGen",
+      type: "hgnc",
+      url: id => `https://search.clinicalgenome.org/kb/genes/HGNC:${id}`,
+      order: 10
+    },
+    {
+      name: "ClinVar",
+      type: "gene",
+      url: g => `https://www.ncbi.nlm.nih.gov/clinvar/?term=${encodeURIComponent(g)}[gene]`,
+      order: 10
+    },
+    {
+      name: "DECIPHER",
+      type: "gene",
+      url: g => `https://www.deciphergenomics.org/gene/${g}`,
+      order: 10
+    },
+    {
+      name: "GenCC",
+      type: "hgnc",
+      url: id => `https://thegencc.org/genes/HGNC:${id}`,
+      order: 10
+    },
+    {
+      name: "GeneCards",
+      type: "gene",
+      url: g => `https://www.genecards.org/cgi-bin/carddisp.pl?gene=${g}`,
+      order: 10
+    },
+    {
+      name: "GeneReviews",
+      type: "gene",
+      url: g => `https://www.ncbi.nlm.nih.gov/books/NBK1116/?term=${encodeURIComponent(g)}`,
+      order: 10
+    },
+    {
+      name: "gnomAD",
+      type: "gene",
+      url: g => `https://gnomad.broadinstitute.org/gene/${g}`,
+      order: 10
+    },
+    {
+      name: "OMIM",
+      type: "omim",
+      url: id => `https://www.omim.org/entry/${id}`,
+      order: 10
+    },
+    {
+      name: "PanelApp AU",
+      type: "gene",
+      url: g => `https://panelapp-aus.org/panels/entities/${g}`,
+      order: 10
+    },
+    {
+      name: "PanelApp UK",
+      type: "gene",
+      url: g => `https://panelapp.genomicsengland.co.uk/panels/entities/${g}`,
+      order: 10
+    },
+  ];
+
+  // ── DOM refs ──────────────────────────────────────────────────────────
+  const geneInput       = document.getElementById('gene-input');
+  const searchBtn       = document.getElementById('search-btn');
+  const openAllCheckbox = document.getElementById('open-all-checkbox');
+  const summarySection  = document.getElementById('summary-section');
+  const summaryLabel    = document.getElementById('summary-label');
+  const summaryText     = document.getElementById('summary-text');
+  const sourcesSection  = document.getElementById('sources-section');
+  const sourceGrid      = document.getElementById('source-grid');
+  const openAllBtn      = document.getElementById('open-all-btn');
+
+  // ── Main search ───────────────────────────────────────────────────────
+  async function runSearch() {
+    const gene = geneInput.value.trim().toUpperCase();
+    if (!gene) return;
+
+    // Show sections in loading state
+    summarySection.classList.add('visible');
+    sourcesSection.classList.add('visible');
+    summaryLabel.textContent = `NCBI Gene Summary – ${gene}`;
+    summaryText.textContent  = 'Loading…';
+    summaryText.className    = 'summary-text loading';
+    sourceGrid.innerHTML     = '';
+    openAllBtn.style.display = 'none';
+
+    // Fetch HGNC and NCBI data in parallel
+    const [hgncData, summaryData] = await Promise.all([
+      fetchHGNC(gene),
+      fetchNCBISummary(gene)
+    ]);
+
+    // Render summary
+    if (summaryData) {
+      summaryText.textContent = summaryData;
+      summaryText.className   = 'summary-text';
+    } else {
+      summaryText.textContent = 'No gene summary found for this symbol.';
+      summaryText.className   = 'summary-text error';
+    }
+
+    // Build source links
+    const hgncId = hgncData?.hgnc_id?.replace('HGNC:', '');
+    const omimId = hgncData?.omim_id?.[0];
+
+    renderSources(gene, hgncId, omimId);
+  }
+
+  // ── HGNC API ──────────────────────────────────────────────────────────
+  async function fetchHGNC(gene) {
+    try {
+      const res = await fetch(
+        `https://rest.genenames.org/fetch/symbol/${gene}`,
+        { headers: { Accept: 'application/json' } }
+      );
+      const data = await res.json();
+      return data?.response?.docs?.[0] ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  // ── NCBI Gene Summary ─────────────────────────────────────────────────
+  async function fetchNCBISummary(gene) {
+    try {
+      // Step 1: search for gene ID
+      const searchRes = await fetch(
+        `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi` +
+        `?db=gene&term=${encodeURIComponent(gene)}[sym]+AND+Homo+sapiens[orgn]&retmax=1&retmode=json`
+      );
+      const searchData = await searchRes.json();
+      const geneId = searchData?.esearchresult?.idlist?.[0];
+      if (!geneId) return null;
+
+      // Step 2: fetch summary
+      const sumRes = await fetch(
+        `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi` +
+        `?db=gene&id=${geneId}&retmode=json`
+      );
+      const sumData = await sumRes.json();
+      return sumData?.result?.[geneId]?.summary || null;
+    } catch {
+      return null;
+    }
+  }
+
+  // ── Render source buttons ─────────────────────────────────────────────
+  function renderSources(gene, hgncId, omimId) {
+    sourceGrid.innerHTML = '';
+    const urls = [];
+
+    // Genetik Lund always first
+    const first = SOURCES.find(s => s.order === 0);
+    const rest  = SOURCES.filter(s => s.order !== 0)
+                         .sort((a, b) => a.name.localeCompare(b.name, 'sv'));
+
+    for (const source of [first, ...rest]) {
+      let href = null;
+
+      if (source.type === 'gene') {
+        href = source.url(gene);
+      } else if (source.type === 'hgnc' && hgncId) {
+        href = source.url(hgncId);
+      } else if (source.type === 'omim' && omimId) {
+        href = source.url(omimId);
+      }
+
+      const btn = document.createElement('a');
+      btn.className = 'source-btn';
+
+      if (href) {
+        btn.href   = href;
+        btn.target = '_blank';
+        btn.rel    = 'noopener noreferrer';
+        urls.push(href);
+      } else {
+        btn.classList.add('disabled');
+        btn.title = 'ID not available for this gene';
+      }
+
+      btn.innerHTML = `
+        <span class="source-name">${source.name}</span>
+        <span class="source-arrow">→</span>
+      `;
+      sourceGrid.appendChild(btn);
+    }
+
+    // Open all button
+    openAllBtn.style.display = 'block';
+    openAllBtn.onclick = () => urls.forEach(u => window.open(u, '_blank', 'noopener,noreferrer'));
+
+    // Auto-open if checkbox is checked
+    if (openAllCheckbox.checked) {
+      urls.forEach(u => window.open(u, '_blank', 'noopener,noreferrer'));
+    }
+  }
+
+  // ── Event listeners ───────────────────────────────────────────────────
+  searchBtn.addEventListener('click', runSearch);
+  geneInput.addEventListener('keydown', e => { if (e.key === 'Enter') runSearch() });
+</script>
+</body>
+</html>
