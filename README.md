@@ -1,2 +1,2 @@
 # rdgene
-Simple lookup for gene names for rare disease use
+Simple lookup tool - Enter a gene symbol to open curated rare disease resources
