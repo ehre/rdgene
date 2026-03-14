@@ -209,7 +209,7 @@
 
         <label class="open-all-row">
           <input type="checkbox" id="open-all-checkbox">
-          Open all resources in new tabs automatically (disable popup blocker)
+          Open all resources in new tabs automatically
         </label>
 
         <!-- Error message -->
@@ -344,7 +344,12 @@
     summarySection.classList.add('visible');
     sourcesSection.classList.add('visible');
 
-    const summaryData = await fetchNCBISummary(gene);
+    // Build source links
+    const hgncId  = hgncData?.hgnc_id?.replace('HGNC:', '');
+    const omimId  = hgncData?.omim_id?.[0];
+    const entrezId = hgncData?.entrez_id;
+
+    const summaryData = await fetchNCBISummary(entrezId);
 
     // Render summary
     if (summaryData) {
@@ -354,10 +359,6 @@
       summaryText.textContent = 'No gene summary available.';
       summaryText.className   = 'summary-text error';
     }
-
-    // Build source links
-    const hgncId = hgncData?.hgnc_id?.replace('HGNC:', '');
-    const omimId = hgncData?.omim_id?.[0];
 
     renderSources(gene, hgncId, omimId);
   }
@@ -377,24 +378,15 @@
   }
 
   // ── NCBI Gene Summary ─────────────────────────────────────────────────
-  async function fetchNCBISummary(gene) {
+  async function fetchNCBISummary(entrezId) {
+    if (!entrezId) return null;
     try {
-      // Step 1: search for gene ID
-      const searchRes = await fetch(
-        `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi` +
-        `?db=gene&term=${encodeURIComponent(gene)}[sym]+AND+Homo+sapiens[orgn]&retmax=1&retmode=json`
-      );
-      const searchData = await searchRes.json();
-      const geneId = searchData?.esearchresult?.idlist?.[0];
-      if (!geneId) return null;
-
-      // Step 2: fetch summary
-      const sumRes = await fetch(
+      const res = await fetch(
         `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi` +
-        `?db=gene&id=${geneId}&retmode=json`
+        `?db=gene&id=${entrezId}&retmode=json`
       );
-      const sumData = await sumRes.json();
-      return sumData?.result?.[geneId]?.summary || null;
+      const data = await res.json();
+      return data?.result?.[entrezId]?.summary || null;
     } catch {
       return null;
     }
