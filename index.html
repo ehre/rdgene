@@ -264,6 +264,18 @@
       order: 10
     },
     {
+      name: "MedGen",
+      type: "gene",
+      url: g => `https://www.ncbi.nlm.nih.gov/medgen/?term=${encodeURIComponent(g)}`,
+      order: 10
+    },
+    {
+      name: "Monarch Initiative",
+      type: "hgnc",
+      url: id => `https://monarchinitiative.org/HGNC:${id}`,
+      order: 10
+    },
+    {
       name: "OMIM",
       type: "omim",
       url: id => `https://www.omim.org/entry/${id}`,
