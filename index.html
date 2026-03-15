@@ -9,6 +9,8 @@
   <style>
     .rdgene-card { padding: 24px 28px }
 
+    .rdgene-card p { text-align: center; color: var(--muted); font-size: .95rem; margin: 0 0 20px }
+
     .search-row { display: flex; gap: 10px; align-items: flex-start }
     .search-row .field { margin: 0; flex: 1; text-transform: uppercase }
     .search-row .field::placeholder { text-transform: none }
@@ -92,9 +94,10 @@
   <main class="content">
     <div class="content-inner">
       <h1 class="home-title">RDgene</h1>
-      <p style="text-align:center; color:var(--muted); font-size:.95rem; margin: 0 0 1.2rem">Enter a gene symbol to open curated rare disease resources</p>
 
       <div class="card rdgene-card">
+        <p>Enter a gene symbol to open curated rare disease resources</p>
+
         <div class="search-row">
           <input
             class="field"
@@ -127,7 +130,6 @@
 </div>
 
 <script>
-  // ── Source definitions ────────────────────────────────────────────────
   const SOURCES = [
     { name: "GenetikLund",        type: "gene", url: g  => `https://genpaneler.genetiklund.se/search/${g}`, order: 0 },
     { name: "ClinGen",            type: "hgnc", url: id => `https://search.clinicalgenome.org/kb/genes/HGNC:${id}`, order: 10 },
@@ -187,41 +189,4 @@
 
   async function fetchHGNC(gene) {
     try {
-      const res = await fetch(`https://rest.genenames.org/fetch/symbol/${gene}`, { headers: { Accept: 'application/json' } });
-      const data = await res.json();
-      return data?.response?.docs?.[0] ?? null;
-    } catch { return null }
-  }
-
-  async function fetchNCBISummary(entrezId) {
-    if (!entrezId) return null;
-    try {
-      const res = await fetch(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=gene&id=${entrezId}&retmode=json`);
-      const data = await res.json();
-      return data?.result?.[entrezId]?.summary || null;
-    } catch { return null }
-  }
-
-  function renderSources(gene, hgncId, omimId) {
-    sourceGrid.innerHTML = '';
-    const first = SOURCES.find(s => s.order === 0);
-    const rest  = SOURCES.filter(s => s.order !== 0).sort((a, b) => a.name.localeCompare(b.name, 'sv'));
-    for (const source of [first, ...rest]) {
-      let href = null;
-      if (source.type === 'gene')            href = source.url(gene);
-      else if (source.type === 'hgnc' && hgncId) href = source.url(hgncId);
-      else if (source.type === 'omim' && omimId) href = source.url(omimId);
-      const btn = document.createElement('a');
-      btn.className = 'source-btn';
-      if (href) { btn.href = href; btn.target = '_blank'; btn.rel = 'noopener noreferrer' }
-      else { btn.classList.add('disabled'); btn.title = 'ID not available for this gene' }
-      btn.innerHTML = `<span class="source-name">${source.name}</span><span class="source-arrow">→</span>`;
-      sourceGrid.appendChild(btn);
-    }
-  }
-
-  searchBtn.addEventListener('click', runSearch);
-  geneInput.addEventListener('keydown', e => { if (e.key === 'Enter') runSearch() });
-</script>
-</body>
-</html>
+      const res = await fetch(`https://rest.genena
