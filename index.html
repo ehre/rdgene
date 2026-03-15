@@ -50,24 +50,6 @@
 
     .search-btn:hover { background: var(--brand-hover) }
 
-    .open-all-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 10px;
-      font-size: .92rem;
-      color: var(--muted);
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .open-all-row input[type="checkbox"] {
-      accent-color: var(--brand);
-      width: 15px;
-      height: 15px;
-      cursor: pointer;
-    }
-
     /* Gene summary */
     .summary-section {
       margin-top: 20px;
@@ -207,11 +189,6 @@
           <button class="search-btn" id="search-btn">Search</button>
         </div>
 
-        <label class="open-all-row">
-          <input type="checkbox" id="open-all-checkbox">
-          Open all resources in new tabs automatically
-        </label>
-
         <!-- Error message -->
         <div class="error-msg" id="error-msg"></div>
 
@@ -307,15 +284,14 @@
   ];
 
   // ── DOM refs ──────────────────────────────────────────────────────────
-  const geneInput       = document.getElementById('gene-input');
-  const searchBtn       = document.getElementById('search-btn');
-  const openAllCheckbox = document.getElementById('open-all-checkbox');
-  const errorMsg        = document.getElementById('error-msg');
-  const summarySection  = document.getElementById('summary-section');
-  const summaryLabel    = document.getElementById('summary-label');
-  const summaryText     = document.getElementById('summary-text');
-  const sourcesSection  = document.getElementById('sources-section');
-  const sourceGrid      = document.getElementById('source-grid');
+  const geneInput      = document.getElementById('gene-input');
+  const searchBtn      = document.getElementById('search-btn');
+  const errorMsg       = document.getElementById('error-msg');
+  const summarySection = document.getElementById('summary-section');
+  const summaryLabel   = document.getElementById('summary-label');
+  const summaryText    = document.getElementById('summary-text');
+  const sourcesSection = document.getElementById('sources-section');
+  const sourceGrid     = document.getElementById('source-grid');
 
   // ── Main search ───────────────────────────────────────────────────────
   async function runSearch() {
@@ -345,8 +321,8 @@
     sourcesSection.classList.add('visible');
 
     // Build source links
-    const hgncId  = hgncData?.hgnc_id?.replace('HGNC:', '');
-    const omimId  = hgncData?.omim_id?.[0];
+    const hgncId   = hgncData?.hgnc_id?.replace('HGNC:', '');
+    const omimId   = hgncData?.omim_id?.[0];
     const entrezId = hgncData?.entrez_id;
 
     const summaryData = await fetchNCBISummary(entrezId);
@@ -395,7 +371,6 @@
   // ── Render source buttons ─────────────────────────────────────────────
   function renderSources(gene, hgncId, omimId) {
     sourceGrid.innerHTML = '';
-    const urls = [];
 
     // Genetik Lund always first
     const first = SOURCES.find(s => s.order === 0);
@@ -420,7 +395,6 @@
         btn.href   = href;
         btn.target = '_blank';
         btn.rel    = 'noopener noreferrer';
-        urls.push(href);
       } else {
         btn.classList.add('disabled');
         btn.title = 'ID not available for this gene';
@@ -432,24 +406,6 @@
       `;
       sourceGrid.appendChild(btn);
     }
-
-    // Auto-open if checkbox is checked
-    if (openAllCheckbox.checked) {
-      openAllUrls(urls);
-    }
-  }
-
-  // ── Open all URLs ─────────────────────────────────────────────────────
-  function openAllUrls(urls) {
-    urls.forEach(url => {
-      const a = document.createElement('a');
-      a.href   = url;
-      a.target = '_blank';
-      a.rel    = 'noopener noreferrer';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    });
   }
 
   // ── Event listeners ───────────────────────────────────────────────────
