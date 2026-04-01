@@ -119,6 +119,7 @@
     { name: "DECIPHER",           type: "gene", url: g  => `https://www.deciphergenomics.org/gene/${g}`, order: 10 },
     { name: "GenCC",              type: "hgnc", url: id => `https://thegencc.org/genes/HGNC:${id}`, order: 10 },
     { name: "GeneCards",          type: "gene", url: g  => `https://www.genecards.org/cgi-bin/carddisp.pl?gene=${g}`, order: 10 },
+    { name: "Gene2Phenotype",     type: "gene", url: g  => `https://www.ebi.ac.uk/gene2phenotype/search?query=${g}`, order: 10 },
     { name: "GeneReviews",        type: "gene", url: g  => `https://www.ncbi.nlm.nih.gov/books/NBK1116/?term=${encodeURIComponent(g)}`, order: 10 },
     { name: "gnomAD",             type: "gene", url: g  => `https://gnomad.broadinstitute.org/gene/${g}`, order: 10 },
     { name: "MedGen",             type: "gene", url: g  => `https://www.ncbi.nlm.nih.gov/medgen/?term=${encodeURIComponent(g)}`, order: 10 },
