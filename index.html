@@ -134,7 +134,7 @@
     { name: "GTEx",               type: "ensembl", url: id => `https://www.gtexportal.org/home/gene/${id}`, order: 10 },
     { name: "gnomAD",             type: "gene",    url: g  => `https://gnomad.broadinstitute.org/gene/${g}`, order: 10 },
     { name: "MedGen",             type: "gene",    url: g  => `https://www.ncbi.nlm.nih.gov/medgen/?term=${encodeURIComponent(g)}`, order: 10 },
-    { name: "MedlinePlus",        type: "gene",    note: "(selected genes)", url: g  => `https://medlineplus.gov/genetics/gene/${g.toLowerCase()}/`, order: 10 },
+    { name: "MedlinePlus",        type: "gene",    url: g  => `https://medlineplus.gov/genetics/gene/${g.toLowerCase()}/`, order: 10 },
     { name: "Monarch Initiative", type: "hgnc",    url: id => `https://monarchinitiative.org/HGNC:${id}`, order: 10 },
     { name: "OMIM",               type: "omim",    url: id => `https://www.omim.org/entry/${id}`, order: 10 },
     { name: "Orphanet",           type: "gene",    url: g  => `https://www.orpha.net/en/disease/gene/${g}`, order: 10 },
