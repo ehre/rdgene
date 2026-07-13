@@ -44,7 +44,9 @@
       .source-btn { transition: none }
       .source-btn:hover { transform: none }
     }
+    .source-label { display: flex; align-items: baseline; gap: 8px; min-width: 0; flex-wrap: wrap }
     .source-name { font-size: 1.02rem; font-weight: 650; color: var(--title-color) }
+    .source-note { font-size: .76rem; font-weight: 500; color: var(--muted) }
     .source-btn:hover .source-name { color: var(--brand) }
     .source-arrow { color: var(--brand); font-size: .95rem }
 
@@ -112,21 +114,37 @@
 </div>
 
 <script>
+  // Each source declares which identifier it needs via `type`, and its url()
+  // builder receives that identifier at render time:
+  //   gene    -> the official HGNC symbol (correct casing, e.g. C9orf72)
+  //   hgnc    -> numeric HGNC id
+  //   omim    -> OMIM id
+  //   uniprot -> canonical UniProt accession
+  //   ensembl -> Ensembl gene id (ENSG…)
+  // A source is auto-disabled when its identifier is unavailable for a gene.
+  // An optional `note` shows a small muted annotation (e.g. coverage caveats).
   const SOURCES = [
-    { name: "GenetikLund",        type: "gene", url: g  => `https://genpaneler.genetiklund.se/search/${g}`, order: 0 },
-    { name: "ClinGen",            type: "hgnc", url: id => `https://search.clinicalgenome.org/kb/genes/HGNC:${id}`, order: 10 },
-    { name: "ClinVar",            type: "gene", url: g  => `https://www.ncbi.nlm.nih.gov/clinvar/?term=${encodeURIComponent(g)}[gene]`, order: 10 },
-    { name: "DECIPHER",           type: "gene", url: g  => `https://www.deciphergenomics.org/gene/${g}`, order: 10 },
-    { name: "GenCC",              type: "hgnc", url: id => `https://thegencc.org/genes/HGNC:${id}`, order: 10 },
-    { name: "GeneCards",          type: "gene", url: g  => `https://www.genecards.org/cgi-bin/carddisp.pl?gene=${g}`, order: 10 },
-    { name: "Gene2Phenotype",     type: "gene", url: g  => `https://www.ebi.ac.uk/gene2phenotype/search?query=${g}`, order: 10 },
-    { name: "GeneReviews",        type: "gene", url: g  => `https://www.ncbi.nlm.nih.gov/books/NBK1116/?term=${encodeURIComponent(g)}`, order: 10 },
-    { name: "gnomAD",             type: "gene", url: g  => `https://gnomad.broadinstitute.org/gene/${g}`, order: 10 },
-    { name: "MedGen",             type: "gene", url: g  => `https://www.ncbi.nlm.nih.gov/medgen/?term=${encodeURIComponent(g)}`, order: 10 },
-    { name: "Monarch Initiative", type: "hgnc", url: id => `https://monarchinitiative.org/HGNC:${id}`, order: 10 },
-    { name: "OMIM",               type: "omim", url: id => `https://www.omim.org/entry/${id}`, order: 10 },
-    { name: "PanelApp AU",        type: "gene", url: g  => `https://panelapp-aus.org/panels/entities/${g}`, order: 10 },
-    { name: "PanelApp UK",        type: "gene", url: g  => `https://panelapp.genomicsengland.co.uk/panels/entities/${g}`, order: 10 },
+    { name: "GenetikLund",        type: "gene",    url: g  => `https://genpaneler.genetiklund.se/search/${g}`, order: 0 },
+    { name: "ClinGen",            type: "hgnc",    url: id => `https://search.clinicalgenome.org/kb/genes/HGNC:${id}`, order: 10 },
+    { name: "ClinVar",            type: "gene",    url: g  => `https://www.ncbi.nlm.nih.gov/clinvar/?term=${encodeURIComponent(g)}[gene]`, order: 10 },
+    { name: "DECIPHER",           type: "gene",    url: g  => `https://www.deciphergenomics.org/gene/${g}`, order: 10 },
+    { name: "Ensembl",            type: "ensembl", url: id => `https://www.ensembl.org/Homo_sapiens/Gene/Summary?g=${id}`, order: 10 },
+    { name: "GenCC",              type: "hgnc",    url: id => `https://thegencc.org/genes/HGNC:${id}`, order: 10 },
+    { name: "GeneCards",          type: "gene",    url: g  => `https://www.genecards.org/cgi-bin/carddisp.pl?gene=${g}`, order: 10 },
+    { name: "Gene2Phenotype",     type: "gene",    url: g  => `https://www.ebi.ac.uk/gene2phenotype/search?query=${g}`, order: 10 },
+    { name: "GeneReviews",        type: "gene",    url: g  => `https://www.ncbi.nlm.nih.gov/books/NBK1116/?term=${encodeURIComponent(g)}`, order: 10 },
+    { name: "GTEx",               type: "ensembl", url: id => `https://www.gtexportal.org/home/gene/${id}`, order: 10 },
+    { name: "gnomAD",             type: "gene",    url: g  => `https://gnomad.broadinstitute.org/gene/${g}`, order: 10 },
+    { name: "MedGen",             type: "gene",    url: g  => `https://www.ncbi.nlm.nih.gov/medgen/?term=${encodeURIComponent(g)}`, order: 10 },
+    { name: "MedlinePlus",        type: "gene",    note: "(selected genes)", url: g  => `https://medlineplus.gov/genetics/gene/${g.toLowerCase()}/`, order: 10 },
+    { name: "Monarch Initiative", type: "hgnc",    url: id => `https://monarchinitiative.org/HGNC:${id}`, order: 10 },
+    { name: "OMIM",               type: "omim",    url: id => `https://www.omim.org/entry/${id}`, order: 10 },
+    { name: "Orphanet",           type: "gene",    url: g  => `https://www.orpha.net/en/disease/gene/${g}`, order: 10 },
+    { name: "PanelApp AU",        type: "gene",    url: g  => `https://panelapp-aus.org/panels/entities/${g}`, order: 10 },
+    { name: "PanelApp UK",        type: "gene",    url: g  => `https://panelapp.genomicsengland.co.uk/panels/entities/${g}`, order: 10 },
+    { name: "RareChromo",         type: "gene",    note: "(selected genes)", url: g  => `https://rarechromo.org/?s=${encodeURIComponent(g)}`, order: 10 },
+    { name: "Socialstyrelsen",    type: "gene",    note: "(selected genes)", url: g  => `https://www.socialstyrelsen.se/sok/?q=${encodeURIComponent(g)}`, order: 10 },
+    { name: "UniProt",            type: "uniprot", url: id => `https://www.uniprot.org/uniprotkb/${id}/entry`, order: 10 },
   ];
 
   const geneInput      = document.getElementById('gene-input');
@@ -146,36 +164,57 @@
     sourcesSection.classList.remove('visible');
     summaryLabel.textContent = `NCBI Gene Summary – ${gene}`;
     summaryText.textContent  = 'Loading…';
-    summaryText.className    = 'summary-text loading';
-    sourceGrid.innerHTML     = '';
+    summaryText.className     = 'summary-text loading';
+    sourceGrid.innerHTML      = '';
+
     const hgncData = await fetchHGNC(gene);
     if (!hgncData) {
       errorMsg.textContent = `"${gene}" was not recognised as a valid HGNC gene symbol.`;
       errorMsg.classList.add('visible');
       return;
     }
+
     summarySection.classList.add('visible');
     sourcesSection.classList.add('visible');
-    const hgncId   = hgncData?.hgnc_id?.replace('HGNC:', '');
-    const omimId   = hgncData?.omim_id?.[0];
-    const entrezId = hgncData?.entrez_id;
+
+    // Drive every symbol-based link off the *official* HGNC symbol so that
+    // mixed-case symbols (e.g. C9orf72) resolve correctly at path-based resources.
+    const symbol    = hgncData?.symbol || gene;
+    const hgncId    = hgncData?.hgnc_id?.replace('HGNC:', '');
+    const omimId    = hgncData?.omim_id?.[0];
+    const entrezId  = hgncData?.entrez_id;
+    const uniprotId = hgncData?.uniprot_ids?.[0];
+    const ensemblId = hgncData?.ensembl_gene_id;
+
+    summaryLabel.textContent = `NCBI Gene Summary – ${symbol}`;
+
+    const geneUrl     = entrezId ? `https://www.ncbi.nlm.nih.gov/gene/${entrezId}` : null;
     const summaryData = await fetchNCBISummary(entrezId);
-    if (summaryData) {
-      summaryText.textContent = summaryData;
-      summaryText.className   = 'summary-text';
-    } else {
-      summaryText.textContent = 'No gene summary available.';
-      summaryText.className   = 'summary-text error';
-    }
-    renderSources(gene, hgncId, omimId);
+    renderSummary(summaryData, geneUrl);
+
+    renderSources({ gene: symbol, hgnc: hgncId, omim: omimId, uniprot: uniprotId, ensembl: ensemblId });
   }
 
   async function fetchHGNC(gene) {
+    const fetchDoc = async (field, value) => {
+      try {
+        const res  = await fetch(`https://rest.genenames.org/fetch/${field}/${encodeURIComponent(value)}`, { headers: { Accept: 'application/json' } });
+        const data = await res.json();
+        return data?.response?.docs?.[0] ?? null;
+      } catch { return null; }
+    };
+    // Fast path: direct symbol fetch (HGNC matches approved symbols case-insensitively).
+    let doc = await fetchDoc('symbol', gene);
+    if (doc) return doc;
+    // Fallback: resolve via the case-insensitive search endpoint, then fetch the
+    // full record by HGNC id. Only accept an exact (case-insensitive) symbol match.
     try {
-      const res = await fetch(`https://rest.genenames.org/fetch/symbol/${gene}`, { headers: { Accept: 'application/json' } });
+      const res  = await fetch(`https://rest.genenames.org/search/symbol/${encodeURIComponent(gene)}`, { headers: { Accept: 'application/json' } });
       const data = await res.json();
-      return data?.response?.docs?.[0] ?? null;
-    } catch { return null }
+      const hit  = data?.response?.docs?.find(d => d.symbol?.toUpperCase() === gene.toUpperCase());
+      if (hit?.hgnc_id) return await fetchDoc('hgnc_id', hit.hgnc_id.replace('HGNC:', ''));
+    } catch {}
+    return null;
   }
 
   async function fetchNCBISummary(entrezId) {
@@ -187,20 +226,52 @@
     } catch { return null }
   }
 
-  function renderSources(gene, hgncId, omimId) {
+  function renderSummary(text, geneUrl) {
+    summaryText.innerHTML = '';
+    if (!text) {
+      summaryText.textContent = 'No gene summary available.';
+      summaryText.className   = 'summary-text error';
+      return;
+    }
+    summaryText.className = 'summary-text';
+
+    const makeLink = (label) => {
+      const a = document.createElement('a');
+      a.href = geneUrl;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.textContent = label;
+      return a;
+    };
+
+    // Linkify the trailing attribution (e.g. "[provided by RefSeq, May 2020]")
+    // to the full NCBI Gene entry. If no such attribution exists, append a
+    // compact "[NCBI Gene]" link so the entry is always reachable.
+    const attrMatch = text.match(/\s*\[[^\]]*\]\s*$/);
+    if (geneUrl && attrMatch) {
+      summaryText.append(document.createTextNode(text.slice(0, attrMatch.index) + ' '));
+      summaryText.append(makeLink(attrMatch[0].trim()));
+    } else if (geneUrl) {
+      summaryText.append(document.createTextNode(text + ' '));
+      summaryText.append(makeLink('[NCBI Gene]'));
+    } else {
+      summaryText.textContent = text;
+    }
+  }
+
+  function renderSources(ids) {
     sourceGrid.innerHTML = '';
     const first = SOURCES.find(s => s.order === 0);
     const rest  = SOURCES.filter(s => s.order !== 0).sort((a, b) => a.name.localeCompare(b.name, 'sv'));
     for (const source of [first, ...rest]) {
-      let href = null;
-      if (source.type === 'gene')                href = source.url(gene);
-      else if (source.type === 'hgnc' && hgncId) href = source.url(hgncId);
-      else if (source.type === 'omim' && omimId) href = source.url(omimId);
+      const value = ids[source.type];
+      const href  = value ? source.url(value) : null;
       const btn = document.createElement('a');
       btn.className = 'source-btn';
       if (href) { btn.href = href; btn.target = '_blank'; btn.rel = 'noopener noreferrer' }
       else { btn.classList.add('disabled'); btn.title = 'ID not available for this gene' }
-      btn.innerHTML = `<span class="source-name">${source.name}</span><span class="source-arrow">→</span>`;
+      const note = source.note ? `<span class="source-note">${source.note}</span>` : '';
+      btn.innerHTML = `<span class="source-label"><span class="source-name">${source.name}</span>${note}</span><span class="source-arrow">→</span>`;
       sourceGrid.appendChild(btn);
     }
   }
