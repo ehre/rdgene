@@ -7,12 +7,10 @@
   <link rel="icon" href="https://ehrencrona.org/favicon.ico">
   <link rel="stylesheet" href="https://ehrencrona.org/shared.css">
   <style>
-    .search-row .field { text-transform: uppercase }
-    .search-row .field::placeholder { text-transform: none }
-
     .summary-section { margin-top: 20px; display: none }
     .summary-section.visible { display: block }
     .summary-label { font-size: .82rem; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px }
+    .summary-label .gene-name { text-transform: none }
     .summary-text { font-size: .95rem; line-height: 1.55; color: var(--text) }
     .summary-text.loading { color: var(--muted); font-style: italic }
     .summary-text.error   { color: var(--muted); font-style: italic }
@@ -157,12 +155,12 @@
   const sourceGrid     = document.getElementById('source-grid');
 
   async function runSearch() {
-    const gene = geneInput.value.trim().toUpperCase();
+    const gene = geneInput.value.trim();
     if (!gene) return;
     errorMsg.classList.remove('visible');
     summarySection.classList.remove('visible');
     sourcesSection.classList.remove('visible');
-    summaryLabel.textContent = `NCBI Gene Summary – ${gene}`;
+    setSummaryLabel(gene);
     summaryText.textContent  = 'Loading…';
     summaryText.className     = 'summary-text loading';
     sourceGrid.innerHTML      = '';
@@ -186,7 +184,8 @@
     const uniprotId = hgncData?.uniprot_ids?.[0];
     const ensemblId = hgncData?.ensembl_gene_id;
 
-    summaryLabel.textContent = `NCBI Gene Summary – ${symbol}`;
+    setSummaryLabel(symbol);
+    geneInput.value = symbol;
 
     const geneUrl     = entrezId ? `https://www.ncbi.nlm.nih.gov/gene/${entrezId}` : null;
     const summaryData = await fetchNCBISummary(entrezId);
@@ -224,6 +223,14 @@
       const data = await res.json();
       return data?.result?.[entrezId]?.summary || null;
     } catch { return null }
+  }
+
+  function setSummaryLabel(name) {
+    summaryLabel.textContent = 'NCBI Gene Summary – ';
+    const span = document.createElement('span');
+    span.className = 'gene-name';
+    span.textContent = name;
+    summaryLabel.appendChild(span);
   }
 
   function renderSummary(text, geneUrl) {
