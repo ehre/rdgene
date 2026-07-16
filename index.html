@@ -123,7 +123,8 @@
   // An optional `note` shows a small muted annotation (e.g. coverage caveats).
   const SOURCES = [
     { name: "GenetikLund",        type: "gene",    url: g  => `https://genpaneler.genetiklund.se/search/${g}`, order: 0 },
-    { name: "ClinGen",            type: "hgnc",    url: id => `https://search.clinicalgenome.org/kb/genes/HGNC:${id}`, order: 10 },
+    { name: "ClinGen CSpec",      type: "hgnc",    note: "(selected genes)", url: id => `https://cspec.genome.network/cspec/ui/svi/?search=HGNC:${id}`, order: 10 },
+    { name: "ClinGen KB",         type: "hgnc",    url: id => `https://search.clinicalgenome.org/kb/genes/HGNC:${id}`, order: 10 },
     { name: "ClinVar",            type: "gene",    url: g  => `https://www.ncbi.nlm.nih.gov/clinvar/?term=${encodeURIComponent(g)}[gene]`, order: 10 },
     { name: "DECIPHER",           type: "gene",    url: g  => `https://www.deciphergenomics.org/gene/${g}`, order: 10 },
     { name: "Ensembl",            type: "ensembl", url: id => `https://www.ensembl.org/Homo_sapiens/Gene/Summary?g=${id}`, order: 10 },
@@ -134,7 +135,7 @@
     { name: "GTEx",               type: "ensembl", url: id => `https://www.gtexportal.org/home/gene/${id}`, order: 10 },
     { name: "gnomAD",             type: "gene",    url: g  => `https://gnomad.broadinstitute.org/gene/${g}`, order: 10 },
     { name: "MedGen",             type: "gene",    url: g  => `https://www.ncbi.nlm.nih.gov/medgen/?term=${encodeURIComponent(g)}`, order: 10 },
-    { name: "MedlinePlus",        type: "gene",    url: g  => `https://medlineplus.gov/genetics/gene/${g.toLowerCase()}/`, order: 10 },
+    { name: "MedlinePlus",        type: "gene",    note: "(selected genes)", url: g  => `https://medlineplus.gov/genetics/gene/${g.toLowerCase()}/`, order: 10 },
     { name: "Monarch Initiative", type: "hgnc",    url: id => `https://monarchinitiative.org/HGNC:${id}`, order: 10 },
     { name: "OMIM",               type: "omim",    url: id => `https://www.omim.org/entry/${id}`, order: 10 },
     { name: "Orphanet",           type: "gene",    url: g  => `https://www.orpha.net/en/disease/gene/${g}`, order: 10 },
