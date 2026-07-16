@@ -42,9 +42,7 @@
       .source-btn { transition: none }
       .source-btn:hover { transform: none }
     }
-    .source-label { display: flex; align-items: baseline; gap: 8px; min-width: 0; flex-wrap: wrap }
     .source-name { font-size: 1.02rem; font-weight: 650; color: var(--title-color) }
-    .source-note { font-size: .76rem; font-weight: 500; color: var(--muted) }
     .source-btn:hover .source-name { color: var(--brand) }
     .source-arrow { color: var(--brand); font-size: .95rem }
 
@@ -120,10 +118,9 @@
   //   uniprot -> canonical UniProt accession
   //   ensembl -> Ensembl gene id (ENSG…)
   // A source is auto-disabled when its identifier is unavailable for a gene.
-  // An optional `note` shows a small muted annotation (e.g. coverage caveats).
   const SOURCES = [
     { name: "GenetikLund",        type: "gene",    url: g  => `https://genpaneler.genetiklund.se/search/${g}`, order: 0 },
-    { name: "ClinGen CSpec",      type: "hgnc",    note: "(selected genes)", url: id => `https://cspec.genome.network/cspec/ui/svi/?search=HGNC:${id}`, order: 10 },
+    { name: "ClinGen CSpec",      type: "hgnc",    url: id => `https://cspec.genome.network/cspec/ui/svi/?search=HGNC:${id}`, order: 10 },
     { name: "ClinGen KB",         type: "hgnc",    url: id => `https://search.clinicalgenome.org/kb/genes/HGNC:${id}`, order: 10 },
     { name: "ClinVar",            type: "gene",    url: g  => `https://www.ncbi.nlm.nih.gov/clinvar/?term=${encodeURIComponent(g)}[gene]`, order: 10 },
     { name: "DECIPHER",           type: "gene",    url: g  => `https://www.deciphergenomics.org/gene/${g}`, order: 10 },
@@ -135,14 +132,14 @@
     { name: "GTEx",               type: "ensembl", url: id => `https://www.gtexportal.org/home/gene/${id}`, order: 10 },
     { name: "gnomAD",             type: "gene",    url: g  => `https://gnomad.broadinstitute.org/gene/${g}`, order: 10 },
     { name: "MedGen",             type: "gene",    url: g  => `https://www.ncbi.nlm.nih.gov/medgen/?term=${encodeURIComponent(g)}`, order: 10 },
-    { name: "MedlinePlus",        type: "gene",    note: "(selected genes)", url: g  => `https://medlineplus.gov/genetics/gene/${g.toLowerCase()}/`, order: 10 },
+    { name: "MedlinePlus",        type: "gene",    url: g  => `https://medlineplus.gov/genetics/gene/${g.toLowerCase()}/`, order: 10 },
     { name: "Monarch Initiative", type: "hgnc",    url: id => `https://monarchinitiative.org/HGNC:${id}`, order: 10 },
     { name: "OMIM",               type: "omim",    url: id => `https://www.omim.org/entry/${id}`, order: 10 },
     { name: "Orphanet",           type: "gene",    url: g  => `https://www.orpha.net/en/disease/gene/${g}`, order: 10 },
     { name: "PanelApp AU",        type: "gene",    url: g  => `https://panelapp-aus.org/panels/entities/${g}`, order: 10 },
     { name: "PanelApp UK",        type: "gene",    url: g  => `https://panelapp.genomicsengland.co.uk/panels/entities/${g}`, order: 10 },
-    { name: "RareChromo",         type: "gene",    note: "(selected genes)", url: g  => `https://rarechromo.org/?s=${encodeURIComponent(g)}`, order: 10 },
-    { name: "Socialstyrelsen",    type: "gene",    note: "(selected genes)", url: g  => `https://www.socialstyrelsen.se/sok/?q=${encodeURIComponent(g)}`, order: 10 },
+    { name: "RareChromo",         type: "gene",    url: g  => `https://rarechromo.org/?s=${encodeURIComponent(g)}`, order: 10 },
+    { name: "Socialstyrelsen",    type: "gene",    url: g  => `https://www.socialstyrelsen.se/sok/?q=${encodeURIComponent(g)}`, order: 10 },
     { name: "UniProt",            type: "uniprot", url: id => `https://www.uniprot.org/uniprotkb/${id}/entry`, order: 10 },
   ];
 
@@ -278,8 +275,7 @@
       btn.className = 'source-btn';
       if (href) { btn.href = href; btn.target = '_blank'; btn.rel = 'noopener noreferrer' }
       else { btn.classList.add('disabled'); btn.title = 'ID not available for this gene' }
-      const note = source.note ? `<span class="source-note">${source.note}</span>` : '';
-      btn.innerHTML = `<span class="source-label"><span class="source-name">${source.name}</span>${note}</span><span class="source-arrow">→</span>`;
+      btn.innerHTML = `<span class="source-name">${source.name}</span><span class="source-arrow">→</span>`;
       sourceGrid.appendChild(btn);
     }
   }
