@@ -121,7 +121,7 @@
   const SOURCES = [
     { name: "GenetikLund",        type: "gene",    url: g  => `https://genpaneler.genetiklund.se/search/${g}`, order: 0 },
     { name: "ClinGen CSpec",      type: "hgnc",    url: id => `https://cspec.genome.network/cspec/ui/svi/?search=HGNC:${id}`, order: 10 },
-    { name: "ClinGen KB",         type: "hgnc",    url: id => `https://search.clinicalgenome.org/kb/genes/HGNC:${id}`, order: 10 },
+    { name: "ClinGen KnowledgeBase",         type: "hgnc",    url: id => `https://search.clinicalgenome.org/kb/genes/HGNC:${id}`, order: 10 },
     { name: "ClinVar",            type: "gene",    url: g  => `https://www.ncbi.nlm.nih.gov/clinvar/?term=${encodeURIComponent(g)}[gene]`, order: 10 },
     { name: "DECIPHER",           type: "gene",    url: g  => `https://www.deciphergenomics.org/gene/${g}`, order: 10 },
     { name: "Ensembl",            type: "ensembl", url: id => `https://www.ensembl.org/Homo_sapiens/Gene/Summary?g=${id}`, order: 10 },
