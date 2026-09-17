@@ -57,6 +57,7 @@
       display: none;
     }
     .error-msg.visible { display: block }
+    .error-msg a { color: inherit; font-weight: 650 }
   </style>
 </head>
 <body>
@@ -110,6 +111,11 @@
 </div>
 
 <script>
+  // HGNC search page (not the gene page) – useful for resolving previous symbols and aliases.
+  function hgncSearchUrl(q) {
+    return `https://www.genenames.org/tools/search/#!/?query=${encodeURIComponent(q)}`;
+  }
+
   // Each source declares which identifier it needs via `type`, and its url()
   // builder receives that identifier at render time:
   //   gene    -> the official HGNC symbol (correct casing, e.g. C9orf72)
@@ -117,6 +123,7 @@
   //   omim    -> OMIM id
   //   uniprot -> canonical UniProt accession
   //   ensembl -> Ensembl gene id (ENSG…)
+  //   query   -> the search term exactly as typed by the user
   // A source is auto-disabled when its identifier is unavailable for a gene.
   const SOURCES = [
     { name: "GenetikLund",        type: "gene",    url: g  => `https://genpaneler.genetiklund.se/search/${g}`, order: 0 },
@@ -131,6 +138,7 @@
     { name: "GeneReviews",        type: "gene",    url: g  => `https://www.ncbi.nlm.nih.gov/books/NBK1116/?term=${encodeURIComponent(g)}`, order: 10 },
     { name: "GTEx",               type: "ensembl", url: id => `https://www.gtexportal.org/home/gene/${id}`, order: 10 },
     { name: "gnomAD",             type: "gene",    url: g  => `https://gnomad.broadinstitute.org/gene/${g}`, order: 10 },
+    { name: "HGNC",               type: "query",   url: q  => hgncSearchUrl(q), order: 10 },
     { name: "MedGen",             type: "gene",    url: g  => `https://www.ncbi.nlm.nih.gov/medgen/?term=${encodeURIComponent(g)}`, order: 10 },
     { name: "MedlinePlus",        type: "gene",    url: g  => `https://medlineplus.gov/genetics/gene/${g.toLowerCase()}/`, order: 10 },
     { name: "Monarch Initiative", type: "hgnc",    url: id => `https://monarchinitiative.org/HGNC:${id}`, order: 10 },
@@ -165,7 +173,14 @@
 
     const hgncData = await fetchHGNC(gene);
     if (!hgncData) {
-      errorMsg.textContent = `"${gene}" was not recognised as a valid HGNC gene symbol.`;
+      // Unrecognised symbol: offer the HGNC search page to resolve previous symbols/aliases.
+      errorMsg.textContent = `"${gene}" was not recognised as a valid HGNC gene symbol. `;
+      const a = document.createElement('a');
+      a.href = hgncSearchUrl(gene);
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.textContent = 'Search HGNC for previous symbols and aliases →';
+      errorMsg.appendChild(a);
       errorMsg.classList.add('visible');
       return;
     }
@@ -189,7 +204,8 @@
     const summaryData = await fetchNCBISummary(entrezId);
     renderSummary(summaryData, geneUrl);
 
-    renderSources({ gene: symbol, hgnc: hgncId, omim: omimId, uniprot: uniprotId, ensembl: ensemblId });
+    // `gene` still holds the term as typed (read before geneInput.value was overwritten).
+    renderSources({ gene: symbol, hgnc: hgncId, omim: omimId, uniprot: uniprotId, ensembl: ensemblId, query: gene });
   }
 
   async function fetchHGNC(gene) {
